@@ -215,14 +215,6 @@ const App = () => {
                         className="w-full h-full rounded-full object-cover"
                       />
                     </div>
-          )}
-        </>
-      )}
-    </div>
-  );
-};
-
-export default App;
                     <span className="text-sm mt-1 text-gray-700 truncate w-16">
                       {story.user.name.split(' ')[0]}
                     </span>
@@ -326,7 +318,7 @@ export default App;
                       </div>
                     </div>
 
-                    {selectedStory.posts[currentPostIndex].image && (
+{selectedStory.posts[currentPostIndex].image && (
                       <div className="w-full aspect-video bg-gray-100">
                         <img
                           src={selectedStory.posts[currentPostIndex].image}
@@ -344,8 +336,10 @@ export default App;
                 </div>
               </div>
             </div>
-           </div>
           )}
+
+          {/* End of Story Viewer Modal */}
+
         </>
       )}
     </div>
