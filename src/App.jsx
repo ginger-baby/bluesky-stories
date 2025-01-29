@@ -172,7 +172,7 @@ const App = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto">
+    <div className="max-w-xl mx-auto bg-gray-50">
       {/* Login Form - show if not authenticated */}
       {!agent?.session && (
         <div className="p-4">
@@ -213,7 +213,7 @@ const App = () => {
       {agent?.session && (
         <>
           {/* Stories Header */}
-          <div className="mb-6 border-b">
+          <div className="mb-6 border-b bg-white">
             <div className="w-full overflow-x-auto">
               <div className="flex space-x-4 p-4 min-w-min">
                 {[...stories].sort((a, b) => {
@@ -249,9 +249,9 @@ const App = () => {
           </div>
 
           {/* Regular Feed */}
-          <div className="p-4">
+          <div className="p-4 space-y-4">
             {feed.map((item) => (
-              <div key={item.post.cid} className="mb-4 bg-white rounded-lg shadow overflow-hidden">
+              <div key={item.post.cid} className="bg-white rounded-lg shadow overflow-hidden">
                 {/* Post Header */}
                 <div className="p-4 pb-2 flex items-center">
                   <img 
@@ -325,7 +325,14 @@ const App = () => {
                   <ChevronLeftIcon />
                 </button>
 
-                  <div className="w-full p-4">
+                <button
+                  onClick={handleNext}
+                  className="absolute right-4 text-white z-10 p-2"
+                >
+                  <ChevronRightIcon />
+                </button>
+
+                <div className="w-full p-4">
                   <div className="bg-white rounded-lg overflow-hidden">
                     <div className="p-4 flex items-center">
                       <img
