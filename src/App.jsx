@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BskyAgent } from '@atproto/api';
 
-// Simple icon components to avoid import issues
+// Icon components (same as before)
 const XIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M18 6L6 18"></path>
@@ -21,6 +21,27 @@ const ChevronRightIcon = () => (
   </svg>
 );
 
+const HeartIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+  </svg>
+);
+
+const RepostIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 1l4 4-4 4"></path>
+    <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+    <path d="M7 23l-4-4 4-4"></path>
+    <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+  </svg>
+);
+
+const ReplyIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+  </svg>
+);
+
 const App = () => {
   const [agent, setAgent] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +50,7 @@ const App = () => {
   const [currentPostIndex, setCurrentPostIndex] = useState(0);
   const [viewedStories, setViewedStories] = useState(new Set());
   const [stories, setStories] = useState([]);
+  const [feed, setFeed] = useState([]);
 
   // Initialize Bluesky agent
   useEffect(() => {
@@ -38,7 +60,7 @@ const App = () => {
     setAgent(agent);
   }, []);
 
-  // Function to group posts by user and filter last 24 hours
+  // Process timeline posts for stories (last 24 hours)
   const processTimelinePosts = (posts) => {
     const last24Hours = Date.now() - 24 * 60 * 60 * 1000;
     const userPosts = {};
@@ -77,6 +99,7 @@ const App = () => {
       const timeline = await agent.getTimeline();
       const processedStories = processTimelinePosts(timeline.data.feed);
       setStories(processedStories);
+      setFeed(timeline.data.feed);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -84,6 +107,7 @@ const App = () => {
     }
   };
 
+  // Story handler functions remain the same...
   const handleStoryClick = (story) => {
     setSelectedStory(story);
     setCurrentPostIndex(0);
@@ -161,7 +185,7 @@ const App = () => {
         </div>
       )}
 
-      {/* Stories Interface - show if authenticated */}
+      {/* Main Interface - show if authenticated */}
       {agent?.session && (
         <>
           {/* Stories Header */}
@@ -198,6 +222,55 @@ const App = () => {
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* Regular Feed */}
+          <div className="p-4">
+            {feed.map((item) => (
+              <div key={item.post.cid} className="mb-4 bg-white rounded-lg shadow overflow-hidden">
+                {/* Post Header */}
+                <div className="p-4 pb-2 flex items-center">
+                  <img 
+                    src={item.post.author.avatar || '/api/placeholder/40/40'} 
+                    alt={item.post.author.handle}
+                    className="w-10 h-10 rounded-full"
+                  />
+                  <div className="ml-3">
+                    <div className="font-semibold">{item.post.author.displayName || item.post.author.handle}</div>
+                    <div className="text-sm text-gray-500">@{item.post.author.handle}</div>
+                  </div>
+                </div>
+
+                {/* Post Image (if exists) */}
+                {item.post.embed?.images?.[0] && (
+                  <div className="w-full aspect-video bg-gray-100">
+                    <img
+                      src={item.post.embed.images[0].fullsize}
+                      alt="Post content"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
+                {/* Post Text */}
+                <div className="p-4">
+                  <p className="text-gray-800">{item.post.record.text}</p>
+                </div>
+
+                {/* Interaction Buttons */}
+                <div className="px-4 pb-3 flex space-x-6 text-gray-500">
+                  <button className="p-1 hover:text-blue-500">
+                    <ReplyIcon />
+                  </button>
+                  <button className="p-1 hover:text-green-500">
+                    <RepostIcon />
+                  </button>
+                  <button className="p-1 hover:text-red-500">
+                    <HeartIcon />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Story Viewer Modal */}
@@ -263,11 +336,3 @@ const App = () => {
                 </div>
               </div>
             </div>
-          )}
-        </>
-      )}
-    </div>
-  );
-};
-
-export default App;
