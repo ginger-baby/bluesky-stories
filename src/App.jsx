@@ -1,8 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { BskyAgent } from '@atproto/api';
-import { Card } from "@/components/ui/card";
-import { HeartIcon, MessageCircleIcon, RepeatIcon, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const App = () => {
   const [agent, setAgent] = useState(null);
@@ -133,7 +131,7 @@ const App = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full p-2 bg-blue-500 text-white rounded"
+              className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300"
             >
               {isLoading ? 'Connecting...' : 'Connect to Bluesky'}
             </button>
