@@ -1,6 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { BskyAgent } from '@atproto/api';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+
+// Simple icon components to avoid import issues
+const XIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 6L6 18"></path>
+    <path d="M6 6l12 12"></path>
+  </svg>
+);
+
+const ChevronLeftIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M15 18l-6-6 6-6"></path>
+  </svg>
+);
+
+const ChevronRightIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 18l6-6-6-6"></path>
+  </svg>
+);
 
 const App = () => {
   const [agent, setAgent] = useState(null);
@@ -192,7 +211,7 @@ const App = () => {
                   onClick={() => setSelectedStory(null)}
                   className="absolute top-4 right-4 text-white z-10"
                 >
-                  <X size={24} />
+                  <XIcon />
                 </button>
 
                 <button
@@ -200,14 +219,14 @@ const App = () => {
                   className="absolute left-4 text-white z-10 p-2"
                   disabled={currentPostIndex === 0 && stories.indexOf(selectedStory) === 0}
                 >
-                  <ChevronLeft size={24} />
+                  <ChevronLeftIcon />
                 </button>
 
                 <button
                   onClick={handleNext}
                   className="absolute right-4 text-white z-10 p-2"
                 >
-                  <ChevronRight size={24} />
+                  <ChevronRightIcon />
                 </button>
 
                 <div className="w-full p-4">
