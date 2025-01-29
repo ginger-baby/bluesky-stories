@@ -215,6 +215,14 @@ const App = () => {
                         className="w-full h-full rounded-full object-cover"
                       />
                     </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+export default App;
                     <span className="text-sm mt-1 text-gray-700 truncate w-16">
                       {story.user.name.split(' ')[0]}
                     </span>
