@@ -1,62 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BskyAgent } from '@atproto/api';
 
-// Add these state variables
-const [persistedSession, setPersistedSession] = useState(() => {
-  const saved = localStorage.getItem('bsky_session');
-  return saved ? JSON.parse(saved) : null;
-});
-
-// Modify the useEffect for agent initialization
-useEffect(() => {
-  const agent = new BskyAgent({
-    service: 'https://bsky.social'
-  });
-  
-  // Try to restore session
-  if (persistedSession) {
-    agent.resumeSession(persistedSession)
-      .then(() => {
-        setAgent(agent);
-        // Fetch initial data
-        return agent.getTimeline();
-      })
-      .then((timeline) => {
-        const processedStories = processTimelinePosts(timeline.data.feed);
-        setStories(processedStories);
-        setFeed(timeline.data.feed);
-      })
-      .catch(() => {
-        // If session restore fails, clear it
-        localStorage.removeItem('bsky_session');
-        setPersistedSession(null);
-      });
-  } else {
-    setAgent(agent);
-  }
-}, [persistedSession]);
-
-// Modify the handleLogin function
-const handleLogin = async (identifier, password) => {
-  setIsLoading(true);
-  setError(null);
-  try {
-    await agent.login({ identifier, password });
-    // Save session after successful login
-    localStorage.setItem('bsky_session', JSON.stringify(agent.session));
-    setPersistedSession(agent.session);
-    
-    const timeline = await agent.getTimeline();
-    const processedStories = processTimelinePosts(timeline.data.feed);
-    setStories(processedStories);
-    setFeed(timeline.data.feed);
-  } catch (err) {
-    setError(err.message);
-  } finally {
-    setIsLoading(false);
-  }
-};
-// Icon components (same as before)
+// Icon components
 const XIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M18 6L6 18"></path>
@@ -106,16 +51,38 @@ const App = () => {
   const [viewedStories, setViewedStories] = useState(new Set());
   const [stories, setStories] = useState([]);
   const [feed, setFeed] = useState([]);
+  const [persistedSession, setPersistedSession] = useState(() => {
+    const saved = localStorage.getItem('bsky_session');
+    return saved ? JSON.parse(saved) : null;
+  });
 
-  // Initialize Bluesky agent
+  // Initialize Bluesky agent and handle session restoration
   useEffect(() => {
     const agent = new BskyAgent({
       service: 'https://bsky.social'
     });
-    setAgent(agent);
-  }, []);
+    
+    if (persistedSession) {
+      agent.resumeSession(persistedSession)
+        .then(() => {
+          setAgent(agent);
+          return agent.getTimeline();
+        })
+        .then((timeline) => {
+          const processedStories = processTimelinePosts(timeline.data.feed);
+          setStories(processedStories);
+          setFeed(timeline.data.feed);
+        })
+        .catch(() => {
+          localStorage.removeItem('bsky_session');
+          setPersistedSession(null);
+          setAgent(agent);
+        });
+    } else {
+      setAgent(agent);
+    }
+  }, [persistedSession]);
 
-  // Process timeline posts for stories (last 24 hours)
   const processTimelinePosts = (posts) => {
     const last24Hours = Date.now() - 24 * 60 * 60 * 1000;
     const userPosts = {};
@@ -151,6 +118,9 @@ const App = () => {
     setError(null);
     try {
       await agent.login({ identifier, password });
+      localStorage.setItem('bsky_session', JSON.stringify(agent.session));
+      setPersistedSession(agent.session);
+      
       const timeline = await agent.getTimeline();
       const processedStories = processTimelinePosts(timeline.data.feed);
       setStories(processedStories);
@@ -162,7 +132,6 @@ const App = () => {
     }
   };
 
-  // Story handler functions remain the same...
   const handleStoryClick = (story) => {
     setSelectedStory(story);
     setCurrentPostIndex(0);
@@ -280,59 +249,60 @@ const App = () => {
           </div>
 
           {/* Regular Feed */}
-<div className="p-4">
-  {feed.map((item) => (
-    <div key={item.post.cid} className="mb-4 bg-white rounded-lg shadow overflow-hidden">
-      {/* Post Header */}
-      <div className="p-4 pb-2 flex items-center">
-        <img 
-          src={item.post.author.avatar || '/api/placeholder/40/40'} 
-          alt={item.post.author.handle}
-          className="w-10 h-10 rounded-full"
-        />
-        <div className="ml-3 flex-grow">
-          <div className="font-semibold">{item.post.author.displayName || item.post.author.handle}</div>
-          <div className="text-sm text-gray-500">@{item.post.author.handle}</div>
-        </div>
-        <div className="text-sm text-gray-500">
-          {new Date(item.post.indexedAt).toLocaleDateString()}
-        </div>
-      </div>
+          <div className="p-4">
+            {feed.map((item) => (
+              <div key={item.post.cid} className="mb-4 bg-white rounded-lg shadow overflow-hidden">
+                {/* Post Header */}
+                <div className="p-4 pb-2 flex items-center">
+                  <img 
+                    src={item.post.author.avatar || '/api/placeholder/40/40'} 
+                    alt={item.post.author.handle}
+                    className="w-10 h-10 rounded-full"
+                  />
+                  <div className="ml-3 flex-grow">
+                    <div className="font-semibold">{item.post.author.displayName || item.post.author.handle}</div>
+                    <div className="text-sm text-gray-500">@{item.post.author.handle}</div>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {new Date(item.post.indexedAt).toLocaleDateString()}
+                  </div>
+                </div>
 
-      {/* Post Text - Now appears above image */}
-      <div className="px-4 pt-2">
-        <p className="text-gray-800 whitespace-pre-wrap break-words">{item.post.record.text}</p>
-      </div>
+                {/* Post Text - Now appears above image */}
+                <div className="px-4 pt-2">
+                  <p className="text-gray-800 whitespace-pre-wrap break-words">{item.post.record.text}</p>
+                </div>
 
-      {/* Post Image (if exists) */}
-      {item.post.embed?.images?.[0] && (
-        <div className="mt-2 w-full bg-gray-100">
-          <img
-            src={item.post.embed.images[0].fullsize}
-            alt="Post content"
-            className="w-full object-contain max-h-[512px]"
-          />
-        </div>
-      )}
+                {/* Post Image (if exists) */}
+                {item.post.embed?.images?.[0] && (
+                  <div className="mt-2 w-full bg-gray-100">
+                    <img
+                      src={item.post.embed.images[0].fullsize}
+                      alt="Post content"
+                      className="w-full object-contain max-h-[512px]"
+                    />
+                  </div>
+                )}
 
-      {/* Interaction Buttons */}
-      <div className="px-4 py-3 flex space-x-6 text-gray-500 border-t mt-2">
-        <button className="p-1 hover:text-blue-500 flex items-center gap-2">
-          <ReplyIcon />
-          {item.replyCount > 0 && <span className="text-sm">{item.replyCount}</span>}
-        </button>
-        <button className="p-1 hover:text-green-500 flex items-center gap-2">
-          <RepostIcon />
-          {item.repostCount > 0 && <span className="text-sm">{item.repostCount}</span>}
-        </button>
-        <button className="p-1 hover:text-red-500 flex items-center gap-2">
-          <HeartIcon />
-          {item.likeCount > 0 && <span className="text-sm">{item.likeCount}</span>}
-        </button>
-      </div>
-    </div>
-  ))}
-</div>
+                {/* Interaction Buttons */}
+                <div className="px-4 py-3 flex space-x-6 text-gray-500 border-t mt-2">
+                  <button className="p-1 hover:text-blue-500 flex items-center gap-2">
+                    <ReplyIcon />
+                    {item.replyCount > 0 && <span className="text-sm">{item.replyCount}</span>}
+                  </button>
+                  <button className="p-1 hover:text-green-500 flex items-center gap-2">
+                    <RepostIcon />
+                    {item.repostCount > 0 && <span className="text-sm">{item.repostCount}</span>}
+                  </button>
+                  <button className="p-1 hover:text-red-500 flex items-center gap-2">
+                    <HeartIcon />
+                    {item.likeCount > 0 && <span className="text-sm">{item.likeCount}</span>}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
           {/* Story Viewer Modal */}
           {selectedStory && (
             <div 
@@ -355,14 +325,7 @@ const App = () => {
                   <ChevronLeftIcon />
                 </button>
 
-                <button
-                  onClick={handleNext}
-                  className="absolute right-4 text-white z-10 p-2"
-                >
-                  <ChevronRightIcon />
-                </button>
-
-                <div className="w-full p-4">
+                  <div className="w-full p-4">
                   <div className="bg-white rounded-lg overflow-hidden">
                     <div className="p-4 flex items-center">
                       <img
@@ -378,7 +341,7 @@ const App = () => {
                       </div>
                     </div>
 
-{selectedStory.posts[currentPostIndex].image && (
+                    {selectedStory.posts[currentPostIndex].image && (
                       <div className="w-full aspect-video bg-gray-100">
                         <img
                           src={selectedStory.posts[currentPostIndex].image}
@@ -397,9 +360,6 @@ const App = () => {
               </div>
             </div>
           )}
-
-          {/* End of Story Viewer Modal */}
-
         </>
       )}
     </div>
